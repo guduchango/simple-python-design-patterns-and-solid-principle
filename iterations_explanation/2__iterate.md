@@ -1,65 +1,63 @@
-1. Introducción de una Clase ValidationError
+1. Introducing a ValidationError Class
 
-En lugar de devolver simples cadenas de texto como mensajes de error, ahora usamos una clase llamada ValidationError. Esta clase encapsula el campo que causó el error y el mensaje asociado.
+Instead of returning simple text strings as error messages, we now use a class called ValidationError. This class encapsulates the field that caused the error and the associated message.
 
-¿Por qué esto es importante?
+Why is this important?
 
-Claridad: Saber exactamente qué campo falló en la validación es fundamental para depuración o para mostrar mensajes claros a los usuarios.
+Clarity: Knowing exactly which field failed validation is critical for debugging or for displaying clear messages to users.
 
-Flexibilidad: La clase ValidationError puede extenderse fácilmente en el futuro para incluir más información (como códigos de error o severidad).
+Flexibility: The ValidationError class can be easily extended in the future to include more information (such as error codes or severity).
 
-Ejemplo
+Example
 
-Antes:
+Before:
 ```python
-"El monto debe ser un número positivo."
+"The amount must be a positive number."
 ```
 
-Después:
+After:
 ```python
 ValidationError(field="amount", message="The amount must be a positive number.")
 ```
 
-2. Uso de Resultados Detallados en las Validaciones
+2. Use of Detailed Results in Validations
 
-Las estrategias de validación ahora devuelven instancias de ValidationError (o None si no hay errores). Esto permite que el código cliente (el validador principal) pueda estructurar los errores de forma más organizada y procesable.
+Validation strategies now return instances of ValidationError (or None if there are no errors). This allows the client code (the main validator) to structure errors in a more organized and actionable way.
 
-Ventaja:
-El validador principal puede categorizar los errores, mostrarlos en un formato más adecuado o incluso enviarlos a un sistema de monitoreo.
+Advantage:
+The main validator can categorize errors, display them in a more appropriate format, or even send them to a monitoring system.
 
-3. Uso de Enumeraciones para Tipos de Tarjeta
+3. Use of Enumerations for Card Types
 
-Los tipos de tarjeta aceptados ahora están definidos mediante una enumeración (CardType). Esto mejora la legibilidad del código y reduce los errores.
+The accepted card types are now defined by an enumeration (CardType). This improves code readability and reduces errors.
 
-Ejemplo
+Example
 
-Antes:
+Before:
 ```python
 CardTypeValidation(["Visa", "MasterCard", "Amex"])
 ```
 
-Después:
+After:
 ```python
 CardTypeValidation([CardType.VISA, CardType.MASTERCARD, CardType.AMEX])
 ```
 
-Ventajas:
-Consistencia: Siempre se trabaja con valores controlados y válidos, eliminando posibles errores tipográficos.
-Extensibilidad: Si en el futuro necesitas agregar un nuevo tipo de tarjeta, solo tienes que extender la enumeración.
+Advantages:
+Consistency: You always work with controlled and valid values, eliminating possible typographical errors.
+Extensibility: If in the future you need to add a new card type, just extend the enumeration.
 
-4. Separación de Responsabilidades Más Clara
+4. Clearer Separation of Responsibilities
 
-El patrón Strategy sigue presente, pero ahora cada componente tiene responsabilidades más claras:
+The Strategy pattern is still present, but now each component has clearer responsibilities:
 
-Las estrategias se encargan únicamente de una validación específica.
-El validador principal es el único que coordina las validaciones y recopila los errores.
-Las clases adicionales (ValidationError y CardType) hacen que el sistema sea más cohesivo y menos dependiente de cadenas de texto.
+Strategies are responsible only for a specific validation.
+The main validator is the only one that coordinates validations and collects errors.
+The additional classes (ValidationError and CardType) make the system more cohesive and less dependent on text strings.
 
-5. Mejoras en Mantenibilidad y Escalabilidad
-Con esta estructura mejorada:
+5. Improved Maintainability and Scalability.
+With this improved structure:
 
-Añadir Nuevas Validaciones: Es tan sencillo como crear una nueva clase que implemente la interfaz ValidationStrategy y devolver instancias de ValidationError en caso de fallo.
+Add New Validations: It is as simple as creating a new class that implements the ValidationStrategy interface and returns instances of ValidationError in case of failure.
 
-Evolución del Sistema: Por ejemplo, podrías incluir traducción de mensajes de error, niveles de severidad o diferentes formatos de respuesta, todo sin romper el código existente.
-
-Ejemplo Comparativo
+System Evolution: For example, you could include error message translation, severity levels or different response formats, all without breaking existing code.
