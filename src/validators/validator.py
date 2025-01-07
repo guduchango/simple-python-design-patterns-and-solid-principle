@@ -1,45 +1,37 @@
-import re
 from datetime import datetime
+import re
 
-class PaymentValidator:
-    def __init__(self):
-        self.accepted_card_types = ["Visa", "MasterCard", "Amex"]
-        self.transaction_limits = {"min": 1.0, "max": 10000.0}
+# Interface for strategies
+class ValidationStrategy:
+    def validate(self, data):
+        raise NotImplementedError("You must implement the 'validate' method.")
 
-    def validate_amount(self, amount):
+# Concrete validation strategies
+class AmountValidation(ValidationStrategy):
+    def __init__(self, min_amount=1.0, max_amount=10000.0):
+        self.min_amount = min_amount
+        self.max_amount = max_amount
+
+    def validate(self, data):
+        amount = data.get("amount", 0)
         if amount <= 0:
-            return "El monto debe ser un número positivo."
-        if not (self.transaction_limits["min"] <= amount <= self.transaction_limits["max"]):
-            return f"El monto debe estar entre {self.transaction_limits['min']} y {self.transaction_limits['max']}."
+            return "The amount must be a positive number."
+        if not (self.min_amount <= amount <= self.max_amount):
+            return f"The amount must be between {self.min_amount} and {self.max_amount}."
         return None
 
-    def validate_card_number(self, card_number):
+
+class CardNumberValidation(ValidationStrategy):
+    def validate(self, data):
+        card_number = data.get("card_number", "")
         if not card_number.isdigit():
-            return "El número de la tarjeta debe contener solo dígitos."
+            return "The card number must contain only digits."
         if not self.luhn_algorithm(card_number):
-            return "El número de la tarjeta no es válido."
+            return "The card number is not valid."
         return None
 
-    def validate_card_expiration(self, expiration_date):
-        try:
-            exp_date = datetime.strptime(expiration_date, "%m/%y")
-            if exp_date < datetime.now():
-                return "La tarjeta ha expirado."
-        except ValueError:
-            return "El formato de la fecha de vencimiento debe ser MM/YY."
-        return None
-
-    def validate_cvv(self, cvv):
-        if not re.match(r"^\d{3,4}$", cvv):
-            return "El CVV debe contener 3 o 4 dígitos."
-        return None
-
-    def validate_card_type(self, card_type):
-        if card_type not in self.accepted_card_types:
-            return f"El tipo de tarjeta '{card_type}' no es aceptado. Tipos aceptados: {', '.join(self.accepted_card_types)}."
-        return None
-
-    def luhn_algorithm(self, card_number):
+    @staticmethod
+    def luhn_algorithm(card_number):
         digits = [int(d) for d in card_number[::-1]]
         checksum = 0
         for i, digit in enumerate(digits):
@@ -50,12 +42,49 @@ class PaymentValidator:
             checksum += digit
         return checksum % 10 == 0
 
-    def validate_payment(self, data):
-        errors = []
-        errors.append(self.validate_amount(data.get("amount", 0)))
-        errors.append(self.validate_card_number(data.get("card_number", "")))
-        errors.append(self.validate_card_expiration(data.get("expiration_date", "")))
-        errors.append(self.validate_cvv(data.get("cvv", "")))
-        errors.append(self.validate_card_type(data.get("card_type", "")))
 
-        return [error for error in errors if error is not None]
+class ExpirationDateValidation(ValidationStrategy):
+    def validate(self, data):
+        expiration_date = data.get("expiration_date", "")
+        try:
+            exp_date = datetime.strptime(expiration_date, "%m/%y")
+            if exp_date < datetime.now():
+                return "The card has expired."
+        except ValueError:
+            return "The expiration date must be in the format MM/YY."
+        return None
+
+
+class CVVValidation(ValidationStrategy):
+    def validate(self, data):
+        cvv = data.get("cvv", "")
+        if not re.match(r"^\d{3,4}$", cvv):
+            return "The CVV must contain 3 or 4 digits."
+        return None
+
+
+class CardTypeValidation(ValidationStrategy):
+    def __init__(self, accepted_card_types):
+        self.accepted_card_types = accepted_card_types
+
+    def validate(self, data):
+        card_type = data.get("card_type", "")
+        if card_type not in self.accepted_card_types:
+            return f"The card type '{card_type}' is not accepted. Accepted types: {', '.join(self.accepted_card_types)}."
+        return None
+    
+# Main validator using strategies
+class PaymentValidator:
+    def __init__(self):
+        self.strategies = []
+
+    def add_strategy(self, strategy):
+        self.strategies.append(strategy)
+
+    def validate(self, data):
+        errors = []
+        for strategy in self.strategies:
+            error = strategy.validate(data)
+            if error:
+                errors.append(error)
+        return errors

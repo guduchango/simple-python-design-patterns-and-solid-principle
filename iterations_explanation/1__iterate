@@ -1,0 +1,79 @@
+Cómo Funciona Nuestro Ejemplo
+1. Interfaz Base: ValidationStrategy
+
+Es una clase abstracta que define el "contrato". Todas las validaciones tienen que implementar el método validate.
+Esto asegura que las validaciones sean consistentes.
+
+```python
+class ValidationStrategy:
+    def validate(self, data):
+        raise NotImplementedError("Debe implementar el método 'validate'.")
+
+```
+2. Estrategias Concretas
+
+Cada validación específica (por ejemplo, validar montos, fechas, CVV, etc.) es una clase separada que implementa la interfaz ValidationStrategy.
+
+Por ejemplo, AmountValidation se encarga únicamente de validar el monto:
+
+```python
+class AmountValidation(ValidationStrategy):
+    def validate(self, data):
+        amount = data.get("amount", 0)
+        if amount <= 0:
+            return "El monto debe ser un número positivo."
+        return None
+
+```
+Ventaja: Si mañana necesitas otra validación, solo tienes que crear una nueva clase sin tocar las demás.
+
+3. Validador Principal: PaymentValidator
+
+Es un "contenedor" de estrategias. Tú decides qué validaciones agregar.
+Este validador recorre todas las estrategias y aplica cada validación al conjunto de datos.
+
+```python
+class PaymentValidator:
+    def __init__(self):
+        self.strategies = []
+
+    def add_strategy(self, strategy):
+        self.strategies.append(strategy)
+
+    def validate(self, data):
+        errors = []
+        for strategy in self.strategies:
+            error = strategy.validate(data)
+            if error:
+                errors.append(error)
+        return errors
+
+```
+4. Uso Práctico
+
+Primero configuras el validador añadiendo las estrategias que quieres usar:
+
+```python
+validator.add_strategy(AmountValidation())
+validator.add_strategy(CardNumberValidation())
+```
+Luego validas los datos de pago:
+
+```python
+payment_data = {
+    "amount": 150.0,
+    "card_number": "4111111111111111",
+    "expiration_date": "12/25",
+    "cvv": "123",
+    "card_type": "Visa"
+}
+
+validation_errors = validator.validate(payment_data)
+```
+El validador pasa los datos a cada estrategia y recopila los errores que encuentre.
+
+5. Ventajas del Cambio
+* Modularidad: Cada validación está separada en su propia clase.
+* Escalabilidad: Puedes agregar nuevas validaciones fácilmente sin modificar las existentes.
+* Mantenibilidad: Si hay un error en una validación, solo tienes que revisar su clase.
+* Reutilización: Puedes usar las mismas validaciones en otros proyectos o contextos.
