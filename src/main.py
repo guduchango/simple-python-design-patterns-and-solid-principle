@@ -1,8 +1,16 @@
 from validators import PaymentValidator, AmountValidation, CardNumberValidation, ExpirationDateValidation, CVVValidation, CardTypeValidation
 from configs import ACCEPTED_CARD_TYPES
+from notifications import NotificationManager, LogNotification,EmailNotification,SMSNotification
 
 # Example usage
 if __name__ == "__main__":
+
+        # Configurar el gestor de notificaciones
+    notification_manager = NotificationManager()
+    notification_manager.add_strategy(LogNotification())
+    notification_manager.add_strategy(EmailNotification())
+    notification_manager.add_strategy(SMSNotification())
+
     validator = PaymentValidator()
     validator.add_strategy(AmountValidation())
     validator.add_strategy(CardNumberValidation())
@@ -13,16 +21,16 @@ if __name__ == "__main__":
     payment_data = {
         "amount": 150.0,
         "card_number": "4111111111111111",
-        "expiration_date": "12/254",
-        "cvv": "123aa",
-        "card_type": "Visa12"
+        "expiration_date": "12/25",
+        "cvv": "123",
+        "card_type": "Visa"
     }
 
     validation_errors = validator.validate(payment_data)
 
     if validation_errors:
-        print("Errores de validación:")
+        notification_manager.notify("Validation errors occurred.", recipient="admin@example.com")
         for error in validation_errors:
-            print(f"- {error}")
+            notification_manager.notify(f"- {error}")
     else:
-        print("Validación exitosa. El pago puede ser procesado.")
+        notification_manager.notify("Payment validation successful.", recipient="user@example.com")
