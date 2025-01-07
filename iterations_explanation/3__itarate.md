@@ -1,5 +1,5 @@
-Crear una Interfaz para Notificaciones
-Definiremos una interfaz base para las notificaciones que las diferentes implementaciones seguirán. Esto sigue el Patrón Strategy, similar a lo que hicimos con las validaciones.
+Create an Interface for Notifications
+We will define a base interface for the notifications that the different implementations will follow. This follows the Strategy Pattern, similar to what we did with validations.
 
 ```python
 # notifications/notification_strategy.py
@@ -10,18 +10,18 @@ class NotificationStrategy(ABC):
     @abstractmethod
     def send(self, message, recipient=None):
         """
-        Envía una notificación.
+        Sends a notification.
 
-        :param message: El mensaje a enviar.
-        :param recipient: El destinatario de la notificación, si aplica.
+        param message: The message to send.
+        param recipient: The recipient of the notification, if applicable.
         """
         pass
 ```
 
-Implementar Notificaciones Concretas
-Añadiremos varias estrategias de notificación. Por simplicidad, incluiremos una implementación básica para cada tipo de notificación.
+Implementing Specific Notifications
+We will add several notification strategies. For simplicity, we will include a basic implementation for each type of notification.
 
-Notificación por Email
+Email Notification
 ```python
 # notifications/email_notification.py
 
@@ -59,8 +59,8 @@ class LogNotification(NotificationStrategy):
         print(f"Internal Log: {message}")
 ```
 
-Crear un Gestor de Notificaciones
-El gestor se encargará de manejar las estrategias de notificación y de enviar notificaciones según sea necesario.
+Create a Notification Manager
+The manager will handle notification strategies and send notifications as needed.
 ```python
 # notifications/notification_manager.py
 
